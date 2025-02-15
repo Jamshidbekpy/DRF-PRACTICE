@@ -1,0 +1,8 @@
+{
+    "editor.inlineSuggest.enabled": true,
+    "workbench.colorCustomizations": {
+        "editorGhostText.foreground": "#999999", // Xira kulrang rang
+        "editorGhostText.background": "#00000000" // Orqa fonni shaffof qilish
+    }
+}
+
