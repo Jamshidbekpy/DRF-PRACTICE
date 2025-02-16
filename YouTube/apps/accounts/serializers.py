@@ -2,11 +2,8 @@ from rest_framework.serializers import (
     ModelSerializer,
     Serializer,
     SerializerMethodField,
-    CurrentUserDefault,
-    HiddenField,
     CharField,
     ValidationError,
-    EmailField
     )
 
 from .models import MyUser, Channel
