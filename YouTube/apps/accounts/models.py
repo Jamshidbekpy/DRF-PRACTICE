@@ -55,7 +55,7 @@ class Channel(BaseModel):
     description = models.TextField(null=True, blank=True)
     image = models.ImageField(upload_to='channel_images/', null=True, blank=True)
     banner = models.ImageField(upload_to='channel_banners/', null=True, blank=True)
-    subscribers = models.ManyToManyField(MyUser, related_name="subscribed_channel", blank=True)
+    subscribers = models.ManyToManyField(MyUser, related_name="channels", blank=True)
     
     class Meta:
         ordering = ['name']

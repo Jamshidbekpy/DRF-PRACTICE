@@ -1,13 +1,17 @@
-from django.shortcuts import render
 from rest_framework.response import Response
 from rest_framework import status
 from rest_framework.views import APIView
 from .serializers import MyUserSerializer
-from rest_framework.generics import CreateAPIView
+from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView,ListAPIView,DestroyAPIView
 # Create your views here.
+
+
+
+# for auth RegisterView,LogoutView,ShowProfile,ChangePasswordAPIView
 
 from .models import MyUser,Channel
 class RegisterView(CreateAPIView):
+    "Register a new user"
     permission_classes = []
     serializer_class = MyUserSerializer
     queryset = MyUser.objects.all()
@@ -15,6 +19,7 @@ class RegisterView(CreateAPIView):
     
 from rest_framework_simplejwt.tokens import RefreshToken
 class LogoutView(APIView):
+    "Logout a user"
     def post(self, request):
         try:
             refresh_token = request.data.get('refresh_token')
@@ -25,21 +30,77 @@ class LogoutView(APIView):
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
         
 class ShowProfile(APIView):
+    "Show user profile"
     def get(self, request):
         user = request.user
         serializer = MyUserSerializer(user)
         return Response(serializer.data)
-    
-# class ChangePasswordView(APIView):
-#     def post(self, request):
-#         user = request.user
-#         new_password = request.data.get('new_password')
-#         user.set_password(new_password)
-#         user.save()
-#         return Response({"message": "Password changed successfully."}, status=status.HTTP_200_OK)
 
-from .serializers import ChannelCreateSerializer
+from .serializers import ChangePasswordSerializer
+class ChangePasswordAPIView(APIView):
+    "Change user password"
+    def post(self, request):
+        user = request.user
+        serializer = ChangePasswordSerializer(data=request.data)
+
+        if serializer.is_valid():
+            old_password = serializer.validated_data['old_password']
+            new_password = serializer.validated_data['new_password']
+
+            if not user.check_password(old_password):
+                return Response({"error": "Old password is incorrect"}, status=status.HTTP_400_BAD_REQUEST)
+
+            user.set_password(new_password)
+            user.save()
+
+            RefreshToken.for_user(user)
+
+            return Response({"message": "Password changed successfully"}, status=status.HTTP_200_OK)
+        
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+
+
+# Channel ListAPIView, RetrieveAPIView, UpdateAPIView, DestroyAPIView,CreateAPIView
+
+from .serializers import ChannelCreateUpdateSerializer
 class ChannelCreateAPIView(CreateAPIView):
-    serializer_class = ChannelCreateSerializer
-    queryset = Channel.objects.all()
+    "Create a new channel"
+    serializer_class = ChannelCreateUpdateSerializer
+    queryset = Channel.objects.filter(is_active=True)
     
+
+from .serializers import ChannelRetrieveSerializer
+class ChannelRetrieveAPIView(RetrieveAPIView):
+    "Retrieve a channel"
+    permission_classes = []
+    serializer_class = ChannelRetrieveSerializer
+    queryset = Channel.objects.filter(is_active=True)
+  
+  
+class ChannelUpdateAPIView(UpdateAPIView):
+    "Update a channel"
+    serializer_class = ChannelCreateUpdateSerializer
+    queryset = Channel.objects.filter(is_active=True)
+
+from .serializers import ChannelListSerializer
+class ChannelListAPIView(ListAPIView):
+    "Followed channels"
+    serializer_class = ChannelListSerializer
+    
+    def get_queryset(self):
+        user = self.request.user
+        return user.channels.all()
+  
+from django.shortcuts import get_object_or_404  
+class ChannelDestroyAPIView(DestroyAPIView):
+    "Delete a channel"
+    def delete(self, request, *args, **kwargs):
+        channel = get_object_or_404(Channel, pk=kwargs['pk'])
+        channel.delete()
+        return Response({"message": "Channel deleted successfully."}, status=status.HTTP_200_OK)
+        
+        
+
+

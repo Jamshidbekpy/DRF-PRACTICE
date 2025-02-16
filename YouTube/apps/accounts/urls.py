@@ -23,19 +23,27 @@ urlpatterns += [
 
 
 # show profile and change password
-from .views import ShowProfile 
+from .views import ShowProfile, ChangePasswordAPIView
 
 urlpatterns += [
     path('api/profile/', ShowProfile.as_view(), name='show_profile'),
-    # path('api/change-password/', ChangePasswordView.as_view(), name='change_password'),
+    path('api/change-password/', ChangePasswordAPIView.as_view(), name='change_password'),
 ]
 
-# channel retrieve,create,update and delete
-from .views import ChannelCreateAPIView
+# channel list,retrieve,create,update and delete
+from .views import (
+    ChannelCreateAPIView,
+    ChannelRetrieveAPIView,
+    ChannelUpdateAPIView,
+    ChannelListAPIView,
+    ChannelDestroyAPIView
+    )
 
 urlpatterns += [
     path('api/channel/', ChannelCreateAPIView.as_view(), name='channel_create'),
-    # path('api/channel/<int:pk>/', ChannelRetrieveAPIView.as_view(), name='channel_retrieve'),
-    # path('api/channel/<int:pk>/update/', ChannelUpdateAPIView.as_view(), name='channel_update'),
-    # path('api/channel/<int:pk>/delete/', ChannelDeleteAPIView.as_view(), name='channel_delete'),
+    path('api/channel/<int:pk>/', ChannelRetrieveAPIView.as_view(), name='channel_retrieve'),
+    path('api/channel/update/<int:pk>/', ChannelUpdateAPIView.as_view(), name='channel_update'),
+    path('api/channel/list/', ChannelListAPIView.as_view(), name='channel_list'),
+    path('api/channel/delete/<int:pk>/', ChannelDestroyAPIView.as_view(), name='channel_delete'),
+    
 ]
