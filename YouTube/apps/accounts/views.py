@@ -78,9 +78,12 @@ class ChannelRetrieveAPIView(RetrieveAPIView):
     serializer_class = ChannelRetrieveSerializer
     queryset = Channel.objects.filter(is_active=True)
   
-  
+
+from rest_framework.permissions import IsAuthenticated
+from .permissions import IsOwner
 class ChannelUpdateAPIView(UpdateAPIView):
     "Update a channel"
+    permission_classes = [IsAuthenticated,IsOwner]
     serializer_class = ChannelCreateUpdateSerializer
     queryset = Channel.objects.filter(is_active=True)
 
@@ -100,6 +103,19 @@ class ChannelDestroyAPIView(DestroyAPIView):
         channel = get_object_or_404(Channel, pk=kwargs['pk'])
         channel.delete()
         return Response({"message": "Channel deleted successfully."}, status=status.HTTP_200_OK)
+
+class ChannelSubscribeAPIView(APIView):
+    "Subscribe to a channel"
+    def post(self, request, pk):
+        channel = get_object_or_404(Channel, pk=pk)
+        user = request.user
+        if user.channel != channel:
+            if channel.subscribers.filter(id=request.user.id).exists():
+                channel.subscribers.remove(request.user)
+                return Response({"message": "Unsubscribed successfully."}, status=status.HTTP_200_OK)
+            channel.subscribers.add(request.user)
+            return Response({"message": "Subscribed successfully."}, status=status.HTTP_200_OK)
+        return Response({"message": "You cannot subscribe to your own channel."}, status=status.HTTP_400_BAD_REQUEST)
         
         
 

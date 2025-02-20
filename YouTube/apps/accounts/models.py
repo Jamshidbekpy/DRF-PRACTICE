@@ -51,7 +51,7 @@ from apps.base.models import BaseModel
 
 class Channel(BaseModel):
     name = models.CharField(max_length=150)
-    owner = models.OneToOneField(MyUser, on_delete=models.CASCADE,null=True, blank=True)
+    owner = models.OneToOneField(MyUser, on_delete=models.CASCADE,null=True, blank=True,related_name='channel')
     description = models.TextField(null=True, blank=True)
     image = models.ImageField(upload_to='channel_images/', null=True, blank=True)
     banner = models.ImageField(upload_to='channel_banners/', null=True, blank=True)

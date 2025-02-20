@@ -36,7 +36,8 @@ from .views import (
     ChannelRetrieveAPIView,
     ChannelUpdateAPIView,
     ChannelListAPIView,
-    ChannelDestroyAPIView
+    ChannelDestroyAPIView,
+    ChannelSubscribeAPIView
     )
 
 urlpatterns += [
@@ -45,5 +46,6 @@ urlpatterns += [
     path('api/channel/update/<int:pk>/', ChannelUpdateAPIView.as_view(), name='channel_update'),
     path('api/channel/list/', ChannelListAPIView.as_view(), name='channel_list'),
     path('api/channel/delete/<int:pk>/', ChannelDestroyAPIView.as_view(), name='channel_delete'),
+    path('api/channel/subscribe/<int:pk>/', ChannelSubscribeAPIView.as_view(), name='channel_subscribe'),
     
 ]

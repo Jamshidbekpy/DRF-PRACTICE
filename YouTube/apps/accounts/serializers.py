@@ -81,7 +81,7 @@ class ChannelRetrieveSerializer(ModelSerializer):
                 category = default_category
         else:
             category = default_category
-        videos = obj.videos.filter(category=category)
+        videos = obj.videos.filter(category=category,is_active=True)
         return VideoSerializer(videos, many=True).data
     
     def get_videos_count(self, obj):
