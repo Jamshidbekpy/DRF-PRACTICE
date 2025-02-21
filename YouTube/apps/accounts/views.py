@@ -5,7 +5,28 @@ from .serializers import MyUserSerializer
 from rest_framework.generics import CreateAPIView, RetrieveAPIView, UpdateAPIView,ListAPIView,DestroyAPIView
 # Create your views here.
 
+# Reset Password
 
+from .serializers import SimplePasswordResetSerializer, SimplePasswordResetConfirmSerializer
+
+class SimplePasswordResetView(APIView):
+    permission_classes = []
+    def post(self, request):
+        serializer = SimplePasswordResetSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Parolni tiklash havolasi emailga yuborildi."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class SimplePasswordResetConfirmView(APIView):
+    permission_classes = []
+    def post(self, request):
+        serializer = SimplePasswordResetConfirmSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response({"message": "Parol muvaffaqiyatli o‘zgartirildi."}, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 # for auth RegisterView,LogoutView,ShowProfile,ChangePasswordAPIView
 

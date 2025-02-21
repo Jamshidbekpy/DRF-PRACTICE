@@ -66,3 +66,10 @@ class Channel(BaseModel):
         return self.name
     
         
+
+class UserProfile(models.Model):
+    user = models.OneToOneField(MyUser, on_delete=models.CASCADE)
+    smtp_host = models.CharField(max_length=255, blank=True, null=True)
+    smtp_port = models.IntegerField(default=587)
+    smtp_email = models.EmailField(blank=True, null=True)
+    smtp_password = models.CharField(max_length=255, blank=True, null=True)

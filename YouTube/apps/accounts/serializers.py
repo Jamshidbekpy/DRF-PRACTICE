@@ -27,7 +27,6 @@ class MyUserSerializer(ModelSerializer):
         return MyUser.objects.create_user(**validated_data)
     
     
-    
 class ChangePasswordSerializer(Serializer):
     old_password = CharField(required=True)
     new_password = CharField(required=True, min_length=8)
@@ -94,4 +93,66 @@ class ChannelListSerializer(ModelSerializer):
         fields = ['name', 'image']  
         
 
-    
+# serializers.py
+
+from django.contrib.auth.tokens import default_token_generator
+from django.utils.encoding import force_bytes, force_str
+from django.utils.http import urlsafe_base64_encode, urlsafe_base64_decode
+from django.core.mail import send_mail
+from rest_framework import serializers
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
+
+class SimplePasswordResetSerializer(serializers.Serializer):
+    email = serializers.EmailField()
+
+    def validate_email(self, value):
+        try:
+            user = User.objects.get(email=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Bu email bilan foydalanuvchi topilmadi.")
+
+        return value
+
+    def send_reset_email(self, user):
+        token = default_token_generator.make_token(user)
+        uid = urlsafe_base64_encode(force_bytes(user.pk))
+        reset_url = f"http://localhost:8000/accounts/api/password-reset-confirm/?uid={uid}&token={token}"
+
+        send_mail(
+            "Parolni tiklash",
+            f"Parolingizni tiklash uchun quyidagi havolani bosing: {reset_url}",
+            "your-email@gmail.com",
+            [user.email],
+            fail_silently=False,
+        )
+
+    def save(self):
+        email = self.validated_data["email"]
+        user = User.objects.get(email=email)
+        self.send_reset_email(user)
+
+
+class SimplePasswordResetConfirmSerializer(serializers.Serializer):
+    uid = serializers.CharField()
+    token = serializers.CharField()
+    new_password = serializers.CharField(write_only=True, min_length=8)
+
+    def validate(self, data):
+        try:
+            uid = force_str(urlsafe_base64_decode(data["uid"]))
+            user = User.objects.get(pk=uid)
+        except (User.DoesNotExist, ValueError):
+            raise serializers.ValidationError("Noto‘g‘ri URL.")
+
+        if not default_token_generator.check_token(user, data["token"]):
+            raise serializers.ValidationError("Token noto‘g‘ri yoki muddati o‘tgan.")
+
+        data["user"] = user
+        return data
+
+    def save(self):
+        user = self.validated_data["user"]
+        user.set_password(self.validated_data["new_password"])
+        user.save()

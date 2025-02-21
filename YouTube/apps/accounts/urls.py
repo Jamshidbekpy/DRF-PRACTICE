@@ -4,9 +4,18 @@ from rest_framework_simplejwt.views import (
     TokenRefreshView,
 )
 
+# Reset password
+
+from .views import SimplePasswordResetView, SimplePasswordResetConfirmView
+
+urlpatterns = [
+    path("api/password-reset/", SimplePasswordResetView.as_view(), name="password-reset"),
+    path("api/password-reset-confirm/", SimplePasswordResetConfirmView.as_view(), name="password-reset-confirm"),
+]
+
 
 # for login and refresh
-urlpatterns = [
+urlpatterns += [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
 ]

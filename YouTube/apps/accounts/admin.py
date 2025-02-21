@@ -2,7 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 # Register your models here.
 
-from .models import MyUser,Channel
+from .models import MyUser,Channel,UserProfile
 class MyUserAdmin(UserAdmin):
     model = MyUser
     list_display = ['username', 'email', 'profile_picture']
@@ -16,3 +16,4 @@ class MyUserAdmin(UserAdmin):
 admin.site.register(MyUser, MyUserAdmin)
 
 admin.site.register(Channel)
+admin.site.register(UserProfile)
