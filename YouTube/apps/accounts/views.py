@@ -97,12 +97,14 @@ class ChannelListAPIView(ListAPIView):
         return user.channels.all()
   
 from django.shortcuts import get_object_or_404  
-class ChannelDestroyAPIView(DestroyAPIView):
+class ChannelDestroyAPIView(APIView):       
     "Delete a channel"
-    def delete(self, request, *args, **kwargs):
-        channel = get_object_or_404(Channel, pk=kwargs['pk'])
-        channel.delete()
-        return Response({"message": "Channel deleted successfully."}, status=status.HTTP_200_OK)
+    def delete(self, request, pk):
+        channel = get_object_or_404(Channel, id=pk)
+        if request.user.channel == channel:
+            channel.delete()
+            return Response({"message": "Channel deleted successfully."}, status=status.HTTP_200_OK)
+        return Response({"message": "You don't have permission to delete this channel."}, status=status.HTTP_403_FORBIDDEN)
 
 class ChannelSubscribeAPIView(APIView):
     "Subscribe to a channel"

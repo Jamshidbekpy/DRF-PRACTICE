@@ -133,7 +133,33 @@ class CommentUpdateSerializer(ModelSerializer):
         model = Comment
         fields = ('text',)
         
+from .models import Playlist   
+class PlaylistListSerializer(ModelSerializer):
+    class Meta:
+        model = Playlist
+        fields = ('name',)
 
+class PlaylistCreateSerializer(ModelSerializer):
+    class Meta:
+        model = Playlist
+        fields = ('name','description')
+        
+class PlaylistUpdateSerializer(ModelSerializer):
+    class Meta:
+        model = Playlist
+        fields = ('name','description')
+        
+class PlaylistRetrieveSerializer(ModelSerializer):
+    videos_list = SerializerMethodField()
+    class Meta:
+        model =Playlist 
+        fields = ('name','description','videos_list','created_at','updated_at')
+        
+    def get_videos_list(self, obj):
+        videos = obj.videos.filter(is_active=True)
+        return VideoSerializer(videos, many=True).data
+    
+    
         
         
         

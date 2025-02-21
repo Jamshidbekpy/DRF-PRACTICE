@@ -122,27 +122,71 @@ class LikedVideosListAPIView(ListAPIView):
         user = self.request.user
         return Video.objects.filter(likes__user_id=user.id,likes__like=True)
 
+
 # Playlist
+
+from .serializers import (
+    PlaylistListSerializer,
+    PlaylistCreateSerializer,
+    PlaylistRetrieveSerializer,
+    PlaylistUpdateSerializer,
+    )
+
+from .models import Playlist
 class PlaylistListAPIView(ListAPIView):
-    pass
+    permission_classes = [IsAuthenticated,HasChannel]
+    serializer_class = PlaylistListSerializer
+    def get_queryset(self):
+        return Playlist.objects.filter(channel=self.request.user.channel,is_active=True)
 
 class PlaylistCreateAPIView(CreateAPIView):
-    pass
+    permission_classes = [IsAuthenticated,HasChannel]
+    serializer_class = PlaylistCreateSerializer
+    def perform_create(self, serializer):
+        serializer.save(channel=self.request.user.channel)
 
 class PlaylistRetrieveAPIView(RetrieveAPIView):
-    pass
+    permission_classes = [IsAuthenticated,HasChannel,IsOwner]
+    serializer_class = PlaylistRetrieveSerializer
+    queryset = Playlist.objects.filter(is_active=True)
 
 class PlaylistUpdateAPIView(UpdateAPIView):
-    pass
+    permission_classes = [IsAuthenticated,HasChannel,IsOwner]
+    serializer_class = PlaylistUpdateSerializer
+    queryset = Playlist.objects.filter(is_active=True)
 
-class PlaylistDestroyAPIView(DestroyAPIView):
-    pass
-
-class AddToPlaylistVideoAPIView(APIView):    
-    pass
+class PlaylistDestroyAPIView(APIView):
+    permission_classes = [IsAuthenticated,HasChannel]
+    def delete(self, request, pk):
+        playlist = get_object_or_404(Playlist, id=pk)
+        if request.user.channel == playlist.channel:
+            playlist.delete()
+            return Response({"message": "Playlist deleted successfully."},status=status.HTTP_204_NO_CONTENT)
+        return Response({"message": "You don't have permission to delete this playlist."},status=status.HTTP_403_FORBIDDEN)
+    
+class AddToPlaylistVideoAPIView(APIView): 
+    permission_classes = [IsAuthenticated,HasChannel]   
+    def post(self, request, pk):
+        playlist = get_object_or_404(Playlist, id=pk)
+        if request.user.channel == playlist.channel:
+            if playlist.videos.filter(id=request.data.get('video')).exists():
+                return Response({"message": "Video already added to playlist."},status=status.HTTP_400_BAD_REQUEST)
+            video = get_object_or_404(Video, id=request.data.get('video'))
+            playlist.videos.add(video)
+            return Response({"message": "Video added to playlist successfully."},status=status.HTTP_201_CREATED)
+        return Response({"message": "You don't have permission to add video to this playlist."},status=status.HTTP_403_FORBIDDEN)
 
 class RemoveFromPlaylistVideoAPIView(APIView):
-    pass
+    permission_classes = [IsAuthenticated,HasChannel]
+    def post(self, request, pk):
+        playlist = get_object_or_404(Playlist, id=pk)
+        if request.user.channel == playlist.channel:
+            if playlist.videos.filter(id=request.data.get('video')).exists():
+                video = get_object_or_404(Video, id=request.data.get('video'))
+                playlist.videos.remove(video)
+                return Response({"message": "Video removed from playlist successfully."},status=status.HTTP_204_NO_CONTENT)
+            return Response({"message": "Video not found in playlist."},status=status.HTTP_404_NOT_FOUND)
+        return Response({"message": "You don't have permission to remove video from this playlist."},status=status.HTTP_403_FORBIDDEN)
 
 
 # Comment
